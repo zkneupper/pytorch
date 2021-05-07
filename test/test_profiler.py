@@ -224,29 +224,29 @@ class TestProfiler(TestCase):
             ]
         )
 
-        # if kineto_available():
-        #    with TemporaryFileName(mode="w+") as fname:
-        #        with profile(profile_memory=True) as prof:
-        #            x = None
-        #            with record_function("test_user_scope_alloc"):
-        #                x = create_cpu_tensor()
-        #            with record_function("test_user_scope_dealloc"):
-        #                del x
-        #        prof.export_chrome_trace(fname)
-        #        with io.open(fname, 'r') as f:
-        #            trace = json.load(f)
-        #            assert "traceEvents" in trace
-        #            events = trace["traceEvents"]
-        #            found_memory_events = False
-        #            for evt in events:
-        #                assert "name" in evt
-        #                if evt["name"] == "[memory]":
-        #                    found_memory_events = True
-        #                    assert "args" in evt
-        #                    assert "Device Type" in evt["args"]
-        #                    assert "Device Id" in evt["args"]
-        #                    assert "Bytes" in evt["args"]
-        #            assert found_memory_events
+        if kineto_available():
+            with TemporaryFileName(mode="w+") as fname:
+                with profile(profile_memory=True) as prof:
+                    x = None
+                    with record_function("test_user_scope_alloc"):
+                        x = create_cpu_tensor()
+                    with record_function("test_user_scope_dealloc"):
+                        del x
+                prof.export_chrome_trace(fname)
+                with io.open(fname, 'r') as f:
+                    trace = json.load(f)
+                    assert "traceEvents" in trace
+                    events = trace["traceEvents"]
+                    found_memory_events = False
+                    for evt in events:
+                        assert "name" in evt
+                        if evt["name"] == "[memory]":
+                            found_memory_events = True
+                            assert "args" in evt
+                            assert "Device Type" in evt["args"]
+                            assert "Device Id" in evt["args"]
+                            assert "Bytes" in evt["args"]
+                    assert found_memory_events
 
         if torch.cuda.is_available():
             create_cuda_tensor()
