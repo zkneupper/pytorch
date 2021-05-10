@@ -32,9 +32,7 @@ timeout: 720
 tests:"""
 
 def gen_abtest_config(control: str, treatment: str, models: List[str]):
-    d = {}
-    d["control"] = control
-    d["treatment"] = treatment
+    d = {"control": control, "treatment": treatment}
     config = ABTEST_CONFIG_TEMPLATE.format(**d)
     if models == ["ALL"]:
         return config + "\n"

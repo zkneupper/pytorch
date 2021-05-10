@@ -67,28 +67,20 @@ class ElementBench(benchmark.Benchmark):
         return "element_" + cls.op_str
 
     def memory_workload(self):
-        input_count = len(self.inputs)
-        if self.mode == "fwd":
-            if self.split_input:
+        if self.split_input:
+            input_count = len(self.inputs)
+            if self.mode == "fwd":
                 sol_count = input_count + 1
                 algorithmic_count = input_count + 1
             else:
-                sol_count = 1 + 1
-                algorithmic_count = 1 + 1
-            if "rand" in self.op_str:
-                sol_count = 1
-                algorithmic_count = 1
-        else:
-            if self.split_input:
                 sol_count = (input_count + 1) + (1 + input_count)
                 algorithmic_count = (input_count + 1) + ((2 + 1) * input_count)
-            else:
-                sol_count = 1 + 1
-                algorithmic_count = 1 + 1
-            if "rand" in self.op_str:
-                sol_count = 1
-                algorithmic_count = 1
-
+        else:
+            sol_count = 1 + 1
+            algorithmic_count = 1 + 1
+        if "rand" in self.op_str:
+            sol_count = 1
+            algorithmic_count = 1
         buffer_size = self.N
         return {
             "sol": buffer_size * sol_count,
@@ -169,8 +161,7 @@ class SimpleElementBench(benchmark.Benchmark):
 
     def forward(self, data):
         a = data + 0.001
-        b = a + 0.002
-        return b
+        return a + 0.002
 
     def reference(self):
         binary_op = self.__class__.binary_op_np_func
@@ -191,13 +182,8 @@ class SimpleElementBench(benchmark.Benchmark):
 
     def memory_workload(self):
         input_count = len(self.inputs)
-        if self.mode == "fwd":
-            sol_count = 2
-            algorithmic_count = 2
-        else:
-            sol_count = 2
-            algorithmic_count = 2
-
+        sol_count = 2
+        algorithmic_count = 2
         buffer_size = self.N
         return {
             "sol": buffer_size * sol_count,

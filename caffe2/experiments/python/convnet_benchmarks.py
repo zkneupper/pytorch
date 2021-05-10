@@ -384,8 +384,7 @@ def net_DAG_Builder(model):
     print("====================================================")
     print("                 Start Building DAG                 ")
     print("====================================================")
-    net_root = SparseTransformer.netbuilder(model)
-    return net_root
+    return SparseTransformer.netbuilder(model)
 
 
 def _InceptionModule(
@@ -447,8 +446,7 @@ def _InceptionModule(
         ('XavierFill', {}), ('ConstantFill', {})
     )
     pool_proj = model.Relu(pool_proj, pool_proj)
-    output = model.Concat([conv1, conv3, conv5, pool_proj], output_name)
-    return output
+    return model.Concat([conv1, conv3, conv5, pool_proj], output_name)
 
 
 def Inception(order):
@@ -609,7 +607,7 @@ def Benchmark(model_gen, arg):
 
     workspace.RunNetOnce(model.param_init_net)
     workspace.CreateNet(model.net)
-    for i in range(arg.warmup_iterations):
+    for _ in range(arg.warmup_iterations):
         workspace.RunNet(model.net.Proto().name)
 
     plan = core.Plan("plan")

@@ -39,9 +39,7 @@ class TestFileStoreHandlerOp(TestCase):
         try:
             os.makedirs(path)
         except OSError as exc:
-            if exc.errno == errno.EEXIST and os.path.isdir(path):
-                pass
-            else:
+            if exc.errno != errno.EEXIST or not os.path.isdir(path):
                 raise
 
         store_handler = "store_handler"

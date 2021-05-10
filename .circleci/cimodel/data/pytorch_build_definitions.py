@@ -205,16 +205,17 @@ def gen_dependent_configs(xenial_parent_config):
 
 
 def gen_docs_configs(xenial_parent_config):
-    configs = []
-
-    configs.append(
+    configs = [
         HiddenConf(
             "pytorch_python_doc_build",
             parent_build=xenial_parent_config,
-            filters=gen_filter_dict(branches_list=r"/.*/",
-                                    tags_list=RC_PATTERN),
+            filters=gen_filter_dict(
+                branches_list=r"/.*/", tags_list=RC_PATTERN
+            ),
         )
-    )
+    ]
+
+
     configs.append(
         DocPushConf(
             "pytorch_python_doc_push",
@@ -254,8 +255,7 @@ def get_root():
 
 def gen_tree():
     root = get_root()
-    configs_list = conf_tree.dfs(root)
-    return configs_list
+    return conf_tree.dfs(root)
 
 
 def instantiate_configs():
@@ -280,7 +280,7 @@ def instantiate_configs():
         parms_list_ignored_for_docker_image = []
 
         python_version = None
-        if compiler_name == "cuda" or compiler_name == "android":
+        if compiler_name in ["cuda", "android"]:
             python_version = fc.find_prop("pyver")
             parms_list = [fc.find_prop("abbreviated_pyver")]
         else:

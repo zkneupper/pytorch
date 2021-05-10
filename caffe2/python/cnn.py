@@ -48,7 +48,7 @@ class CNNModelHelper(ModelHelper):
         self.use_cudnn = use_cudnn
         self.cudnn_exhaustive_search = cudnn_exhaustive_search
         self.ws_nbytes_limit = ws_nbytes_limit
-        if self.order != "NHWC" and self.order != "NCHW":
+        if self.order not in ["NHWC", "NCHW"]:
             raise ValueError(
                 "Cannot understand the CNN storage order %s." % self.order
             )

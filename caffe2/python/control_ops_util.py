@@ -96,9 +96,7 @@ def add_if_op(if_net, cond_blob, lexical_scope, then_net, else_net=None):
         outer_blobs_idx=then_outer_blob_names_idx)
     do_then_net.AddExternalOutput(*then_output_blobs)
 
-    if_args = {}
-    if_args['then_net'] = do_then_net.Proto()
-
+    if_args = {'then_net': do_then_net.Proto()}
     do_else_workspace_blob = None
     if else_net:
         do_else_net = core.Net('do_else_net')

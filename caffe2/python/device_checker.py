@@ -84,7 +84,7 @@ class DeviceChecker(object):
         old_ws_name = workspace.CurrentWorkspace()
         results = []
         if blobs_to_check is None:
-            blobs_to_check = sum([list(op.output) for op in net.op], [])
+            blobs_to_check = sum((list(op.output) for op in net.op), [])
         blobs_to_check = [b for b in blobs_to_check if b not in ignore]
         workspace.SwitchWorkspace("_device_check_", True)
         for device_option in self._device_options:

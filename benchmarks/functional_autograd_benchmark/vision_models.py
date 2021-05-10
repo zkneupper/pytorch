@@ -20,8 +20,7 @@ def get_resnet18(device: torch.device) -> GetterReturnType:
         load_weights(model, names, new_params)
         out = model(inputs)
 
-        loss = criterion(out, labels)
-        return loss
+        return criterion(out, labels)
 
     return forward, params
 
@@ -40,8 +39,7 @@ def get_fcn_resnet(device: torch.device) -> GetterReturnType:
         load_weights(model, names, new_params)
         out = model(inputs)['out']
 
-        loss = criterion(out, labels)
-        return loss
+        return criterion(out, labels)
 
     return forward, params
 
@@ -91,7 +89,9 @@ def get_detr(device: torch.device) -> GetterReturnType:
 
         loss = criterion(out, labels)
         weight_dict = criterion.weight_dict
-        final_loss = cast(Tensor, sum(loss[k] * weight_dict[k] for k in loss.keys() if k in weight_dict))
-        return final_loss
+        return cast(
+            Tensor,
+            sum(loss[k] * weight_dict[k] for k in loss.keys() if k in weight_dict),
+        )
 
     return forward, params

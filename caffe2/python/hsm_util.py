@@ -49,8 +49,7 @@ def create_hierarchy(tree_proto):
         path.append([max_index,
                     len(node_proto.word_ids) + len(node_proto.children), 0])
         max_index += len(node_proto.word_ids) + len(node_proto.children)
-        if hierarchy_proto.size < max_index:
-            hierarchy_proto.size = max_index
+        hierarchy_proto.size = max(hierarchy_proto.size, max_index)
         for target, node in enumerate(node_proto.children):
             path[-1][2] = target
             max_index = recursive_path_builder(node, path, hierarchy_proto,

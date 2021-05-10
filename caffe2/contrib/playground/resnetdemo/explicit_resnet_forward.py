@@ -154,7 +154,7 @@ class ResNetModelHelper():
         test_mode = False
         if self.split in ['test', 'val']:
             test_mode = True
-        bn_blob = self.model.SpatialBN(
+        return self.model.SpatialBN(
             conv_blob, prefix + "_bn", dim_out,
             # epsilon=1e-3,
             # momentum=0.1,
@@ -162,7 +162,6 @@ class ResNetModelHelper():
             momentum=self.opts['model_param']['bn_momentum'],
             is_test=test_mode,
         )
-        return bn_blob
 
     def conv_bn(
         self, blob_in, dim_in, dim_out, kernel, stride, prefix, group=1, pad=1,
@@ -176,13 +175,12 @@ class ResNetModelHelper():
         test_mode = False
         if self.split in ['test', 'val']:
             test_mode = True
-        bn_blob = self.model.SpatialBN(
+        return self.model.SpatialBN(
             conv_blob, prefix + "_bn", dim_out,
             epsilon=self.opts['model_param']['bn_epsilon'],
             momentum=self.opts['model_param']['bn_momentum'],
             is_test=test_mode,
         )
-        return bn_blob
 
     def conv_bn_relu(
         self, blob_in, dim_in, dim_out, kernel, stride, prefix, pad=1, group=1,

@@ -28,7 +28,7 @@ def gen_rendezvous_ctx(self, model, dataset, is_train):
         )
     )
 
-    rendezvous = dict(
+    return dict(
         kv_handler="store_handler",
         shard_id=self.shard_id,
         num_shards=self.opts['distributed']['num_shards'],
@@ -38,4 +38,3 @@ def gen_rendezvous_ctx(self, model, dataset, is_train):
         # interface=interfaces[0],
         interface=[],
         exit_nets=None) if is_train else None
-    return rendezvous

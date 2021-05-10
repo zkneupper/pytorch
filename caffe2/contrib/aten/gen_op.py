@@ -103,7 +103,7 @@ SPECIAL_IMPLEMENTATIONS = {
 def expand(o):
     num_defaults = sum(1 if 'default' in arg else 0 for arg in o['arguments'])
     results = [o]
-    for i in range(0, num_defaults):
+    for i in range(num_defaults):
         # last num_default values should be default
         assert('default' in o['arguments'][-(i + 1)])
         v = deepcopy(o)
@@ -216,11 +216,14 @@ def get_num_inputs(o):
 
 
 def find_factory_methods(decls):
-    factory_methods = {}
-    for o in decls:
-        if any(arg['dynamic_type'] == 'at::TensorOptions' for arg in o['arguments']):
-            factory_methods[o['name']] = 0
-    return factory_methods
+    return {
+        o['name']: 0
+        for o in decls
+        if any(
+            arg['dynamic_type'] == 'at::TensorOptions'
+            for arg in o['arguments']
+        )
+    }
 
 
 def emit_assignments(o, env):

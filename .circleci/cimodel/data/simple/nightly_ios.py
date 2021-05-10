@@ -16,15 +16,13 @@ class IOSNightlyJob:
 
         extra_name_suffix = [self.get_phase_name()] if self.is_upload else []
 
-        common_name_pieces = [
+        return [
             "ios",
         ] + ios_definitions.XCODE_VERSION.render_dots_or_parts(with_version_dots) + [
             "nightly",
             self.variant,
             "build",
         ] + extra_name_suffix
-
-        return common_name_pieces
 
     def gen_job_name(self):
         return "_".join(["pytorch"] + self.get_common_name_pieces(False))

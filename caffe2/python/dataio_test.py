@@ -311,7 +311,7 @@ class TestReaderWithLimit(TestCase):
         expected_read_len = int(round(num_threads * duration / sleep_duration))
         # Because the time limit check happens before the delay + read op,
         # subtract a little bit of time to ensure we don't get in an extra read
-        duration = duration - 0.25 * sleep_duration
+        duration -= 0.25 * sleep_duration
 
         # NOTE: `expected_read_len_threshold` was added because this test case
         # has significant execution variation under stress. Under stress, we may

@@ -515,9 +515,10 @@ class LayerModelHelper(model_helper.ModelHelper):
 
     def add_loss(self, loss, name='unnamed'):
         assert loss is not None, "Added loss should not be None"
-        assert isinstance(loss, schema.Scalar) or isinstance(
-            loss, schema.Struct
+        assert isinstance(
+            loss, (schema.Scalar, schema.Struct)
         ), "Added loss should be a scalar or a struct"
+
         if self._loss is None:
             self._loss = schema.Struct((name, loss))
         else:
@@ -538,10 +539,13 @@ class LayerModelHelper(model_helper.ModelHelper):
     def add_output_schema(self, name, value):
         assert value is not None, \
             'Added output schema {} should not be None'.format(name)
-        assert isinstance(value, schema.Scalar) or \
-            isinstance(value, schema.Struct), \
-            'Added output schema {} should be a scalar or a struct.\n\
-            Now it is {}.'.format(name, type(value))
+        assert isinstance(
+            value, (schema.Scalar, schema.Struct)
+        ), 'Added output schema {} should be a scalar or a struct.\n\
+            Now it is {}.'.format(
+            name, type(value)
+        )
+
         if self._output_schema is None:  # be the first field
             self._output_schema = schema.Struct((name, value))
         else:  # merge with other fields

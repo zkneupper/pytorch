@@ -107,12 +107,11 @@ class Conf(object):
             if self.os == "linux" and phase != "upload":
                 job_def["docker_image"] = self.gen_docker_image()
 
-        if phase == "test":
-            if self.gpu_version:
-                if self.os == "windows":
-                    job_def["executor"] = "windows-with-nvidia-gpu"
-                else:
-                    job_def["resource_class"] = "gpu.medium"
+        if phase == "test" and self.gpu_version:
+            if self.os == "windows":
+                job_def["executor"] = "windows-with-nvidia-gpu"
+            else:
+                job_def["resource_class"] = "gpu.medium"
 
         os_name = miniutils.override(self.os, {"macos": "mac"})
         job_name = "_".join([self.get_name_prefix(), os_name, phase])
@@ -186,7 +185,7 @@ def gen_build_env_list(smoke):
     return newlist
 
 def predicate_exclude_macos(config):
-    return config.os == "linux" or config.os == "windows"
+    return config.os in ["linux", "windows"]
 
 def get_nightly_uploads():
     configs = gen_build_env_list(False)

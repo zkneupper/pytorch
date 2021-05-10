@@ -121,8 +121,7 @@ class DBFileReader(Reader):
             blob_name[len(blob_prefix):] for blob_name in sorted(workspace.Blobs())
             if blob_name.startswith(blob_prefix)
         ]
-        schema = from_column_list(col_names)
-        return schema
+        return from_column_list(col_names)
 
     def setup_ex(self, init_net, finish_net):
         """From the Dataset, create a _DatasetReader and setup a init_net.

@@ -79,7 +79,7 @@ def run_trainer(
 
 def call_trainers(config, model, train_data, parameter_server_rrefs):
     futs = []
-    for trainer_rank in range(0, config.trainer_count):
+    for trainer_rank in range(config.trainer_count):
         trainer_name = get_name(
             trainer_rank,
             config
@@ -137,12 +137,9 @@ def run_master(rank, model, data, config, rpc_backend_options):
         world_size=world_size,
         rpc_backend_options=rpc_backend_options
     )
-    parameter_server_rrefs = {}
-    for i in range(
+    parameter_server_rrefs = {i: get_ps_rref(i, config) for i in range(
         config.trainer_count, world_size - 1
-    ):
-        parameter_server_rrefs[i] = get_ps_rref(i, config)
-
+    )}
     train_data = split_list(
         list(DataLoader(data, batch_size=config.batch_size)),
         config.trainer_count
@@ -215,14 +212,13 @@ def run_benchmark(rank, model, data, config):
 
 
 def get_json_config(file_name, id):
-    f = open(
+    with open(
         os.path.join(
             Path(__file__).parent, file_name
         ),
         "r"
-    )
-    json_config = json.load(f)[id]
-    f.close()
+    ) as f:
+        json_config = json.load(f)[id]
     return json_config
 
 

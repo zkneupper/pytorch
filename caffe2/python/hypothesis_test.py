@@ -72,7 +72,7 @@ _NUMPY_TYPE_TO_ENUM = {
 
 
 def _dtypes(dtypes=None):
-    dtypes = dtypes if dtypes else [np.int32, np.int64, np.float32]
+    dtypes = dtypes or [np.int32, np.int64, np.float32]
     return st.sampled_from(dtypes)
 
 
@@ -576,7 +576,7 @@ class TestOperators(hu.HypothesisTestCase):
             ms_o = ms + (1. - decay) * (np.square(grad) - ms)
             mom_o = momentum * mom + lr * grad / np.sqrt(epsilon + ms_o)
             grad_o = mom_o
-            return (grad_o, ms_o, mom_o)
+            return grad_o, ms_o, grad_o
         self.assertReferenceChecks(gc, op, [grad, ms, mom, lr], rmsprop)
 
     # Reference
@@ -861,7 +861,7 @@ class TestOperators(hu.HypothesisTestCase):
         def op_ref(prediction, labels, top_k):
             N = prediction.shape[0]
             correct = 0
-            for i in range(0, len(prediction)):
+            for i in range(len(prediction)):
                 pred_sorted = sorted(
                     ([item, j] for j, item in enumerate(prediction[i])),
                     key=lambda x: x[0],
@@ -1023,10 +1023,7 @@ class TestOperators(hu.HypothesisTestCase):
         )
 
         def op_ref(x):
-            if not x.size:
-                arr = [x.reshape(0)]
-            else:
-                arr = [np.concatenate(([0], np.cumsum(x)[:-1]))]
+            arr = [np.concatenate(([0], np.cumsum(x)[:-1]))] if x.size else [x.reshape(0)]
             if include_last_offset:
                 arr[0] = np.concatenate((arr[0], np.array([np.sum(x)])))
             return tuple(arr)
@@ -1064,13 +1061,13 @@ class TestOperators(hu.HypothesisTestCase):
             amounts = np.empty(D, dtype=int)
             amounts.fill(0)
             max_ids = np.argmax(prediction, axis=1)
-            for i in range(0, N):
+            for i in range(N):
                 max_id = max_ids[i]
                 label_id = labels[i]
                 if max_id == label_id:
                     accuracies[label_id] += 1
                 amounts[label_id] += 1
-            for i in range(0, D):
+            for i in range(D):
                 amount = amounts[i]
                 if amount:
                     accuracies[i] /= amount
@@ -1425,9 +1422,7 @@ class TestOperators(hu.HypothesisTestCase):
         plan.AddStep(worker_step)
 
         self.ws.run(plan)
-        v = 0
-        for counter in counters:
-            v += self.ws.blobs[str(counter)].fetch().tolist()
+        v = sum(self.ws.blobs[str(counter)].fetch().tolist() for counter in counters)
         self.assertEqual(v, truth)
 
     @given(num_queues=st.integers(1, 5),
@@ -1893,10 +1888,9 @@ class TestOperators(hu.HypothesisTestCase):
                     np.random.randn(n, d).astype(np.float32),
                     device_option=gc)
             self.ws.run(m.net)
-            gradients = [
+            return [
                 self.ws.blobs[str(input_to_grad[input_blob])].fetch()
                 for input_blob in input_blobs]
-            return gradients
 
         outputs = [run() for _ in range(iters)]
         for output in outputs[1:]:

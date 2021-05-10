@@ -41,10 +41,10 @@ def _ShouldInclude(net_state, layer):
     """A function that reproduces Caffe's inclusion and exclusion rule."""
     ret = (len(layer.include) == 0)
     # check exclude rules: if any exclusion is met, we shouldn't include.
-    ret &= not any([_StateMeetsRule(net_state, rule) for rule in layer.exclude])
+    ret &= not any(_StateMeetsRule(net_state, rule) for rule in layer.exclude)
     if len(layer.include):
         # check include rules: if any inclusion is met, we should include.
-        ret |= any([_StateMeetsRule(net_state, rule) for rule in layer.include])
+        ret |= any(_StateMeetsRule(net_state, rule) for rule in layer.include)
     return ret
 
 
@@ -84,7 +84,6 @@ def _AdjustDims(op_def, arg_map, pads, dim1, dim2):
     n2, c2, h2, w2 = dim2
     assert(n1 == n2)
     assert(c1 == c2)
-    is_pad = 'pad' in arg_map
     if h1 != h2 or w1 != w2:
         if h1 == h2 + 1:
             pads['pad_b'] += 1
@@ -94,6 +93,7 @@ def _AdjustDims(op_def, arg_map, pads, dim1, dim2):
             pads['pad_r'] += 1
         elif w1 != w2:
             raise Exception("Unexpected dimensions for width:", w1, w2)
+        is_pad = 'pad' in arg_map
         if is_pad:
             op_def.arg.remove(arg_map['pad'])
             args = []
@@ -136,9 +136,7 @@ def _RemoveLegacyPad(net, net_params, input_dims):
         for i in range(len(net.op)):
             op_def = net.op[i]
             if i in legacy_pad_ops:
-                arg_map = {}
-                for arg in op_def.arg:
-                    arg_map[arg.name] = arg
+                arg_map = {arg.name: arg for arg in op_def.arg}
                 pads = _GetLegacyPadArgs(op_def, arg_map)
                 # remove legacy pad arg
                 for j in range(len(op_def.arg)):
@@ -707,15 +705,14 @@ def TranslateBatchNorm(layer, pretrained_blobs, is_test, **kwargs):
              output + "_saved_var"])
 
     n_channels = pretrained_blobs[0].shape[0]
-    if pretrained_blobs[2][0] != 0:
-        mean = utils.NumpyArrayToCaffe2Tensor(
-            (1. / pretrained_blobs[2][0]) * pretrained_blobs[0],
-            output + '_mean')
-        var = utils.NumpyArrayToCaffe2Tensor(
-            (1. / pretrained_blobs[2][0]) * pretrained_blobs[1],
-            output + '_var')
-    else:
+    if pretrained_blobs[2][0] == 0:
         raise RuntimeError("scalar is zero.")
+    mean = utils.NumpyArrayToCaffe2Tensor(
+        (1. / pretrained_blobs[2][0]) * pretrained_blobs[0],
+        output + '_mean')
+    var = utils.NumpyArrayToCaffe2Tensor(
+        (1. / pretrained_blobs[2][0]) * pretrained_blobs[1],
+        output + '_var')
     if len(pretrained_blobs) > 3:
         # IntelCaffe and NVCaffe uses fused BN+Scale,
         # three blobs for BN and two blobs for Scale,
@@ -764,9 +761,11 @@ def TranslateScale(layer, pretrained_blobs, is_test, **kwargs):
         output = mul_op.output[0]
         mul_op_param = output + 'scale_w'
         mul_op.input.append(mul_op_param)
-        weights = []
-        weights.append(utils.NumpyArrayToCaffe2Tensor(
-            pretrained_blobs[0].flatten(), mul_op_param))
+        weights = [
+            utils.NumpyArrayToCaffe2Tensor(
+                pretrained_blobs[0].flatten(), mul_op_param
+            )
+        ]
 
         add_op = None
         if len(pretrained_blobs) == 1:

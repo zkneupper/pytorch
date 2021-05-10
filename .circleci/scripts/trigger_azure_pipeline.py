@@ -123,15 +123,15 @@ if __name__ == '__main__':
         build_id = submit_build(PIPELINE_ID, PROJECT_ID, SOURCE_BRANCH)
         build_status, build_result = wait_for_build(build_id)
 
-        if build_result != 'succeeded':
-            retry = retry - 1
-            if retry > 0:
-                print("Retrying... remaining attempt: " + str(retry))
-                # Wait a bit before retrying
-                time.sleep((MAX_RETRY - retry) * 120)
-                continue
-            else:
-                print("No more chance to retry. Giving up.")
-                sys.exit(-1)
-        else:
+        if build_result == 'succeeded':
             break
+
+        retry -= 1
+        if retry > 0:
+            print("Retrying... remaining attempt: " + str(retry))
+            # Wait a bit before retrying
+            time.sleep((MAX_RETRY - retry) * 120)
+            continue
+        else:
+            print("No more chance to retry. Giving up.")
+            sys.exit(-1)

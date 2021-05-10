@@ -89,10 +89,9 @@ def _build_test(configs, bench_op, OperatorTestCase, run_backward, op_name_funct
 
             # if 'cuda' is specified in input shape but the testing machines doesn't
             # support, we will skip this input
-            if 'cuda' in attr.values():
-                if not torch.cuda.is_available():
-                    keep_config = False
-                    break
+            if 'cuda' in attr.values() and not torch.cuda.is_available():
+                keep_config = False
+                break
 
             test_attrs.update(attr)
 
@@ -204,35 +203,24 @@ class BenchmarkRunner(object):
             # Output for AI-PEP
             # Print out per iteration execution time instead of avg time
             return
-            test_name = '_'.join([test_case.framework, test_case.test_config.test_name])
+        if test_case.framework == "PyTorch":
+            print("# Mode: {}".format("JIT" if self.use_jit else "Eager"))
+
+        print("# Name: {}\n"
+              "# Input: {}".format(
+                  test_case.test_config.test_name,
+                  test_case.test_config.input_config))
+
+        mode = "Backward" if test_case.test_config.run_backward else "Forward"
+        if self.num_runs > 1:
             for run in range(self.num_runs):
-                print("{}Observer ".format(test_case.framework) + json.dumps(
-                    {
-                        "type": test_name,
-                        "metric": "latency",
-                        "unit": "us",
-                        "value": str(reported_run_time_us[run]),
-                    }
-                ))
+                print("Run: {}, {} Execution Time (us) : {:.3f}".format(
+                    run,
+                    mode, reported_run_time_us[run]))
+            print()
         else:
-            if test_case.framework == "PyTorch":
-                print("# Mode: {}".format("JIT" if self.use_jit else "Eager"))
-
-            print("# Name: {}\n"
-                  "# Input: {}".format(
-                      test_case.test_config.test_name,
-                      test_case.test_config.input_config))
-
-            mode = "Backward" if test_case.test_config.run_backward else "Forward"
-            if self.num_runs > 1:
-                for run in range(self.num_runs):
-                    print("Run: {}, {} Execution Time (us) : {:.3f}".format(
-                        run,
-                        mode, reported_run_time_us[run]))
-                print()
-            else:
-                print("{} Execution Time (us) : {:.3f}\n".format(
-                    mode, reported_run_time_us[0]))
+            print("{} Execution Time (us) : {:.3f}\n".format(
+                mode, reported_run_time_us[0]))
 
     def _predict_num_iter_needed(self, i):
         return (i * self.multiplier)
@@ -255,8 +243,9 @@ class BenchmarkRunner(object):
         func = test_case.run_forward
         if self.use_jit:
             func = test_case.run_jit_forward
-        forward_time = timeit.timeit(functools.partial(func, iters, print_per_iter, cuda_sync), number=1)
-        return forward_time
+        return timeit.timeit(
+            functools.partial(func, iters, print_per_iter, cuda_sync), number=1
+        )
 
     def _launch_backward(self, test_case, iters, print_per_iter=False):
         """ This function runs forward path of an op to get an output. Then the backward path is executed
@@ -265,10 +254,9 @@ class BenchmarkRunner(object):
         test_case.run_forward(num_runs=1, print_per_iter=False, cuda_sync=False)
         if test_case.framework == "PyTorch":
             test_case._output_mean()
-        backward_time = timeit.timeit(functools.partial(test_case.run_backward, iters,
+        return timeit.timeit(functools.partial(test_case.run_backward, iters,
                                                         print_per_iter),
                                       number=1)
-        return backward_time
 
     def _measure_time(self, launch_test, test_case, iters, print_per_iter):
         """
@@ -305,22 +293,17 @@ class BenchmarkRunner(object):
             # Re-estimate the hopefully-sufficient
             # iteration count, and run the benchmark again...
             iters = self._predict_num_iter_needed(iters)
-        reported_run_time_us = np.percentile(np.array(time_trace), 50)
-        return reported_run_time_us
+        return np.percentile(np.array(time_trace), 50)
 
     def _check_keep(self, test_flag, cmd_flag):
         return (cmd_flag is None or test_flag == cmd_flag)
 
     def _check_operator_first_char(self, test_flag, cmd_flag):
-        if cmd_flag is None or test_flag[:1].lower() in cmd_flag:
-            return True
-        return False
+        return cmd_flag is None or test_flag[:1].lower() in cmd_flag
 
     def _check_keep_list(self, test_flag, cmd_flag_list):
-        if (cmd_flag_list is None or
-                any(test_flag == cmd_flag for cmd_flag in cmd_flag_list)):
-            return True
-        return False
+        return (cmd_flag_list is None or
+                any(test_flag == cmd_flag for cmd_flag in cmd_flag_list))
 
     def _keep_test(self, test_case):
         # TODO: consider regex matching for test filtering.
@@ -333,18 +316,31 @@ class BenchmarkRunner(object):
         operators = benchmark_utils.process_arg_list(self.args.operators) if self.args.operators else None
 
         # Filter framework, operator, test_name, tag, forward_only
-        if (self._check_keep(op_test_config.test_name, self.args.test_name) and
-            self._check_keep_list(test_case.op_bench.module_name(), operators) and
-            self._check_keep_list(test_case.framework, frameworks) and
-            self._check_operator_first_char(test_case.op_bench.module_name(), self.operator_range) and
-                (self.args.tag_filter == 'all' or
-                    self._check_keep(op_test_config.tag, self.args.tag_filter)) and
-                (not self.args.forward_only or op_test_config.run_backward != self.args.forward_only) and
-                (self.args.device == 'None' or 'device' not in test_case.test_config.input_config or
-                    self.args.device in op_test_config.test_name)):
-            return True
-
-        return False
+        return bool(
+            (
+                self._check_keep(op_test_config.test_name, self.args.test_name)
+                and self._check_keep_list(
+                    test_case.op_bench.module_name(), operators
+                )
+                and self._check_keep_list(test_case.framework, frameworks)
+                and self._check_operator_first_char(
+                    test_case.op_bench.module_name(), self.operator_range
+                )
+                and (
+                    self.args.tag_filter == 'all'
+                    or self._check_keep(op_test_config.tag, self.args.tag_filter)
+                )
+                and (
+                    not self.args.forward_only
+                    or op_test_config.run_backward != self.args.forward_only
+                )
+                and (
+                    self.args.device == 'None'
+                    or 'device' not in test_case.test_config.input_config
+                    or self.args.device in op_test_config.test_name
+                )
+            )
+        )
 
     def _print_test_case_info(self, test_case):
         # Print out the test name and skip the real execution

@@ -25,12 +25,8 @@ class ReduceBench(benchmark.Benchmark):
             raise ValueError("invalid case: %s" % case)
 
     def forward(self, inputs):
-        if self.skip_input_transform:
-            x = inputs
-        else:
-            x = self.add(inputs, 0.001)
-        y = self.sum(x, self.dims)
-        return y
+        x = inputs if self.skip_input_transform else self.add(inputs, 0.001)
+        return self.sum(x, self.dims)
 
     def config(self):
         if self.case == "full":
@@ -138,13 +134,12 @@ class Reduce2DBench(benchmark.Benchmark):
             [dim0, dim1], device=device, dtype=dtype, requires_grad=self.requires_grad
         )]
 
-        if red_dim != 0 and red_dim != 1 :
+        if red_dim not in [0, 1]:
             raise ValueError("invalid reduction dimension: {}".format(red_dim))
 
     def forward(self, inputs):
         x = self.add(inputs, 0.001)
-        y = self.sum(x, [self.red_dim])
-        return y
+        return self.sum(x, [self.red_dim])
 
     def config(self):
         return [self.red_dim, self.dim0, self.dim1]
@@ -167,10 +162,7 @@ class Reduce2DBench(benchmark.Benchmark):
         assert self.mode == "fwd", "Only the forward operation is modeled!"
 
         buffer_size = self.dim0 * self.dim1
-        if self.red_dim == 0 :
-            buffer_size += self.dim1
-        else :
-            buffer_size += self.dim0
+        buffer_size += self.dim1 if self.red_dim == 0 else self.dim0
         return {
             "sol": buffer_size,
             "algorithmic": buffer_size,

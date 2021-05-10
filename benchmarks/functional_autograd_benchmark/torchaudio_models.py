@@ -511,8 +511,11 @@ class ScaledDotProduct(torch.nn.Module):
         if attn_mask is not None:
             if attn_mask.dim() != 3:
                 raise RuntimeError('attn_mask must be a 3D tensor.')
-            if (attn_mask.size(-1) != src_len) or (attn_mask.size(-2) != tgt_len) or \
-               (attn_mask.size(-3) != 1 and attn_mask.size(-3) != batch_heads):
+            if (
+                attn_mask.size(-1) != src_len
+                or attn_mask.size(-2) != tgt_len
+                or attn_mask.size(-3) not in [1, batch_heads]
+            ):
                 raise RuntimeError('The size of the attn_mask is not correct.')
             if attn_mask.dtype != torch.bool:
                 raise RuntimeError('Only bool tensor is supported for attn_mask')

@@ -145,12 +145,12 @@ def Parallelize(
         device scope was: {}".format(scope.CurrentDeviceScope())
 
     if devices is None:
-        if not (cpu_device or ideep):
-            devices = list(range(0, workspace.NumCudaDevices()))
+        if not cpu_device and not ideep:
+            devices = list(range(workspace.NumCudaDevices()))
         else:
-            devices = list(range(0, cpu_count()))
+            devices = list(range(cpu_count()))
 
-    if not (cpu_device or ideep):
+    if not cpu_device and not ideep:
         for gpu in devices:
             if gpu >= workspace.NumGpuDevices():
                 log.warning("** Only {} GPUs available, GPUs {} requested".format(
@@ -314,7 +314,7 @@ def Parallelize(
     if broadcast_computed_params:
         _BroadcastComputedParams(devices, model_helper_obj, rendezvous, use_nccl)
 
-    if len(model_helper_obj._grad_names) > 0:
+    if model_helper_obj._grad_names:
         # Gradients in reverse order
         reverse_ordered_grads = _GetReverseOrderedGrads(model_helper_obj)
         assert(len(reverse_ordered_grads) > 0)
@@ -337,7 +337,12 @@ def Parallelize(
     if shared_model:
         _PruneParametersForSharing(model_helper_obj)
 
-    if param_update_builder_fun is not None:
+    if param_update_builder_fun is None:
+        log.info("Calling optimizer builder function")
+        optimizer = optimizer_builder_fun(model_helper_obj)
+        model_helper_obj._optimizer = optimizer
+
+    else:
         for device in devices:
             device_opt = core.DeviceOption(model_helper_obj._device_type, device)
             with core.DeviceScope(device_opt):
@@ -345,11 +350,6 @@ def Parallelize(
                     "{}_{}".format(model_helper_obj._device_prefix, device)
                 ):
                     param_update_builder_fun(model_helper_obj)
-    else:
-        log.info("Calling optimizer builder function")
-        optimizer = optimizer_builder_fun(model_helper_obj)
-        model_helper_obj._optimizer = optimizer
-
     (sync_blobs, sync_names) = _ComputeBlobsToSync(model_helper_obj)
     sync_blobs_grouped = _GroupByDevice(
         model_helper_obj,

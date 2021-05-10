@@ -30,16 +30,12 @@ def to_str(item):
 
 
 def print_header(colwidth=16, sep=' '):
-    items = []
-    for item in BenchResult._fields:
-        items.append(fit_str(item))
+    items = [fit_str(item) for item in BenchResult._fields]
     return sep.join(items)
 
 
 def pretty_print(benchresult, colwidth=16, sep=' '):
-    items = []
-    for thing in benchresult:
-        items.append(fit_str(to_str(thing)))
+    items = [fit_str(to_str(thing)) for thing in benchresult]
     return sep.join(items)
 
 # shim for torch.cuda.Event when running on cpu
@@ -60,11 +56,7 @@ def trainbench(name, rnn_creator, nloops=100, warmup=10,
                miniBatch=64, device='cuda', seed=None):
     def train_batch(modeldef):
         # CUDA events for timing
-        if device == 'cuda':
-            timer_class = torch.cuda.Event
-        else:
-            timer_class = Event
-
+        timer_class = torch.cuda.Event if device == 'cuda' else Event
         fwd_start_event = timer_class(enable_timing=True)
         fwd_end_event = timer_class(enable_timing=True)
         bwd_start_event = timer_class(enable_timing=True)

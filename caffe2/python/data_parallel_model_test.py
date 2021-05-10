@@ -1122,7 +1122,7 @@ class ParallelizeBMUFTest(TestCase):
         np.random.seed(26)
         # Each run has same input, independent of number of gpus
         batch_size = 64
-        for _ in range(0, 10):
+        for _ in range(10):
             full_data = np.random.rand(batch_size, 16)
             full_labels = np.round(full_data[:, 0])
             batch_per_device = batch_size // len(devices)

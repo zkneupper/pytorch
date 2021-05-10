@@ -129,10 +129,7 @@ class NetGradientChecker(object):
         def GetLoss(new_value):
             workspace.blobs[input_to_check] = new_value
             workspace.RunNetOnce(full_net)
-            return sum([
-                workspace.blobs[output]
-                for output in outputs_with_grad
-            ]).sum()
+            return sum(workspace.blobs[output] for output in outputs_with_grad).sum()
 
         def GetValue(dim, delta):
             input_value = input_values[input_to_check].copy()

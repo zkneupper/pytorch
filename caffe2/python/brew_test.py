@@ -134,9 +134,8 @@ class BrewTest(unittest.TestCase):
 
     def test_arg_scope_nested(self):
         myhelper = self.myhelper
-        n = 16
-        with brew.arg_scope([myhelper], val=-3), \
-                brew.arg_scope([myhelper], val=-2):
+        with brew.arg_scope([myhelper], val=-3), brew.arg_scope([myhelper], val=-2):
+            n = 16
             with brew.arg_scope([myhelper], val=n):
                 res = brew.myhelper(self.model)
                 self.assertEqual(n, res)

@@ -188,20 +188,16 @@ def gen_class(op, op_def):
 
 
 def gen_classes(ops, op_list):
-    f = ""
-    for op in op_list:
-        f += gen_class(op, ops[op])
-    return f
+    return "".join(gen_class(op, ops[op]) for op in op_list)
 
 
 def gen_enum(op_list):
-    return ",\n".join([op for op in op_list]) + "\n"
+    return ",\n".join(op_list) + "\n"
 
 
 def gen_names(op_list):
-    f = ""
-    for op in op_list:
-        f += dedent(
+    return "".join(
+        dedent(
             """
             case NNKind::{name}:
                 return \"{name}\";
@@ -209,7 +205,8 @@ def gen_names(op_list):
                 name=op
             )
         )
-    return f
+        for op in op_list
+    )
 
 
 if __name__ == "__main__":
