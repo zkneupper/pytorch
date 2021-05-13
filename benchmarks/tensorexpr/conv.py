@@ -26,8 +26,7 @@ class ConvImplBench(benchmark.Benchmark):
             self.to_device(self.conv, device)
 
     def forward(self):
-        y = self.conv(self.data)
-        return y
+        return self.conv(self.data)
 
     def config(self):
         return [self.kernel_size, self.N, self.iC, self.H, self.W, self.oC]

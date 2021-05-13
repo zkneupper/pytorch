@@ -255,10 +255,7 @@ def _blob_to_node(producing_ops, shapes, name):
     n = NodeDef()
     n.name = name
     inputs = producing_ops.get(name, [])
-    if inputs:
-        n.op = 'Blob'
-    else:
-        n.op = 'Placeholder'
+    n.op = 'Blob' if inputs else 'Placeholder'
     n.input.extend('%s:%d' % (op.name, i) for op, i in inputs)
     if inputs:
         device = inputs[0][0].device_option

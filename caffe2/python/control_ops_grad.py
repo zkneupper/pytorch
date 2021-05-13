@@ -212,12 +212,13 @@ def gen_while_gradient(op, g_output):
     grad_ops, deduped_g_output = dedupe_g_output(op, g_output)
     g_output = deduped_g_output
 
-    init_grad_map = {}
     op_output = [str(o) for o in op.output]
-    for output_name, grad_output_name in zip(op_output, g_output):
-        if grad_output_name:
-            init_grad_map[BlobReference(output_name)] = \
-                BlobReference(grad_output_name)
+    init_grad_map = {
+        BlobReference(output_name): BlobReference(grad_output_name)
+        for output_name, grad_output_name in zip(op_output, g_output)
+        if grad_output_name
+    }
+
     assert len(init_grad_map) > 0, "Empty initial gradient map for While op"
 
     loop_net = _get_net_argument(op, "loop_net")
@@ -478,9 +479,7 @@ def _gen_subgradient_pass(subnet, init_grad):
     subnet_ir = IR(subnet.op)
     grad_ops, grad_blob_map = \
         subnet_ir.GetBackwardPass(init_grad)
-    grad_names_map = {}
-    for b, g in grad_blob_map.items():
-        grad_names_map[str(b)] = str(g)
+    grad_names_map = {str(b): str(g) for b, g in grad_blob_map.items()}
     return grad_ops, grad_names_map
 
 

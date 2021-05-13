@@ -600,10 +600,7 @@ class CompositeReaderBuilder(ReaderBuilder):
         # limiter is stateful; it can only be used once. Since
         # CompositeReader stops when one of the reader stops,
         # this is fine.
-        if "limiter" in kwargs:
-            limiter = kwargs.pop("limiter")
-        else:
-            limiter = None
+        limiter = kwargs.pop("limiter") if "limiter" in kwargs else None
         for i, reader_builder in enumerate(self._reader_builders):
             if i == len(self._reader_builders) - 1 and limiter is not None:
                 # The limiter must be applied to the last reader so that the

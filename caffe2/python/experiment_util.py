@@ -91,11 +91,7 @@ class ModelTrainerLog():
         logdict['input_count'] = delta_count
         logdict['cumulative_input_count'] = input_count
         logdict['cumulative_batch_count'] = batch_count
-        if delta_t > 0:
-            logdict['inputs_per_sec'] = delta_count / delta_t
-        else:
-            logdict['inputs_per_sec'] = 0.0
-
+        logdict['inputs_per_sec'] = delta_count / delta_t if delta_t > 0 else 0.0
         for k in sorted(viewkeys(additional_values)):
             logdict[k] = additional_values[k]
 

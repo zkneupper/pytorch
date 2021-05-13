@@ -9,12 +9,14 @@ import sys
 
 
 def save_to_s3(project, data):
-    table_content = ""
     client = boto3.client("s3")
-    for repo, tag, window, age, pushed in data:
-        table_content += "<tr><td>{repo}</td><td>{tag}</td><td>{window}</td><td>{age}</td><td>{pushed}</td></tr>".format(
+    table_content = "".join(
+        "<tr><td>{repo}</td><td>{tag}</td><td>{window}</td><td>{age}</td><td>{pushed}</td></tr>".format(
             repo=repo, tag=tag, window=window, age=age, pushed=pushed
         )
+        for repo, tag, window, age, pushed in data
+    )
+
     html_body = """
     <html>
         <head>
@@ -70,8 +72,7 @@ def repos(client):
     paginator = client.get_paginator("describe_repositories")
     pages = paginator.paginate(registryId="308535385114")
     for page in pages:
-        for repo in page["repositories"]:
-            yield repo
+        yield from page["repositories"]
 
 
 def images(client, repository):
@@ -80,8 +81,7 @@ def images(client, repository):
         registryId="308535385114", repositoryName=repository["repositoryName"]
     )
     for page in pages:
-        for image in page["imageDetails"]:
-            yield image
+        yield from page["imageDetails"]
 
 
 parser = argparse.ArgumentParser(description="Delete old Docker tags from registry")

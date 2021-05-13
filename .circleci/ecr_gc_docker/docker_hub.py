@@ -52,10 +52,8 @@ def list_tags(repo, token):
 
 
 def save_to_s3(tags):
-    table_content = ""
     client = boto3.client("s3")
-    for t in tags:
-        table_content += (
+    table_content = "".join((
             "<tr><td>{repo}</td><td>{tag}</td><td>{size}</td>"
             "<td>{last_updated_at}</td><td>{last_updated_by}</td></tr>"
         ).format(
@@ -64,7 +62,7 @@ def save_to_s3(tags):
             size=t.size,
             last_updated_at=t.last_updated_at,
             last_updated_by=t.last_updated_by,
-        )
+        ) for t in tags)
     html_body = """
     <html>
         <head>

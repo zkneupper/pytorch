@@ -101,7 +101,7 @@ class ConcatBenchmark(op_bench_c2.Caffe2BenchmarkBase):
         if type(sizes) == list and N == -1:
             gen_sizes = sizes
         else:
-            for i in range(N):
+            for _ in range(N):
                 gen_sizes.append([old_size() if callable(old_size) else old_size for old_size in sizes])
 
         for s in gen_sizes:
@@ -112,10 +112,9 @@ class ConcatBenchmark(op_bench_c2.Caffe2BenchmarkBase):
         self.set_module_name("concat")
 
     def forward(self):
-        op = core.CreateOperator(
+        return core.CreateOperator(
             "Concat", self.inputs, [self.output, self.split_info], **self.args
         )
-        return op
 
 
 op_bench_c2.generate_c2_test(cat_configs_short +

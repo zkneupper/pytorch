@@ -184,7 +184,6 @@ class TestGradientCalculation(test_util.TestCase):
         except RuntimeError as e:
             print(e)
             self.assertTrue("version" in str(e))
-            pass
 
     def testUseOutput(self):
         operators = [

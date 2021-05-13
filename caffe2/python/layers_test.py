@@ -537,8 +537,8 @@ class TestLayers(LayersTestCase):
             )),
         ))
 
-        embedding_dim = 64
         with self.assertRaises(AssertionError):
+            embedding_dim = 64
             self.model.SparseLookup(
                 record.sparse.sparse_feature_0, [embedding_dim], 'PositionWeighted')
 
@@ -654,8 +654,8 @@ class TestLayers(LayersTestCase):
             )),
         ))
 
-        embedding_dim = 64
         with self.assertRaises(AssertionError):
+            embedding_dim = 64
             self.model.SparseLookup(
                 record.sparse.sparse_feature_0, [embedding_dim], 'RecencyWeighted')
 
@@ -715,13 +715,9 @@ class TestLayers(LayersTestCase):
                 ((np.float32, (N, embedding_dim)))
             )),
         ))
-        current = self.model.PairwiseSimilarity(
-            record, N * N)
+        current = self.model.PairwiseSimilarity(record, N**2)
 
-        self.assertEqual(
-            schema.Scalar((np.float32, (N * N, ))),
-            current
-        )
+        self.assertEqual(schema.Scalar((np.float32, (N**2, ))), current)
 
         train_init_net, train_net = self.get_training_nets()
         self.assertNetContainOps(train_init_net, [])
@@ -1213,9 +1209,9 @@ class TestLayers(LayersTestCase):
 
     def testUniformSamplingWithIncorrectSampleSize(self):
         input_record = self.new_record(schema.Scalar(np.int32))
-        num_samples = 200
-        num_elements = 100
         with self.assertRaises(AssertionError):
+            num_samples = 200
+            num_elements = 100
             self.model.UniformSampling(input_record, num_samples, num_elements)
 
     def testGatherRecord(self):
@@ -2276,10 +2272,9 @@ class TestLayers(LayersTestCase):
                 w = workspace.FetchBlob(w_blob_name)
                 weights.append(w)
 
-            result = np.sum([
+            return np.sum([
                 input_data[idx] * weights[idx] for idx in range(num_inputs)
             ], axis=0)
-            return result
 
         np.random.seed(seed)
         expected_output_schema = schema.Scalar((np.float32, (input_dim,)))

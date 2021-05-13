@@ -12,7 +12,7 @@ def barf():
 
 
 def assertEqual(tensor, expected, threshold=0.001):
-    if isinstance(tensor, list) or isinstance(tensor, tuple):
+    if isinstance(tensor, (list, tuple)):
         for t, e in zip(tensor, expected):
             assertEqual(t, e)
     else:
@@ -65,10 +65,6 @@ def test_rnns(experim_creator, control_creator, check_grad=True, verbose=False,
 
 
 def test_vl_py(**test_args):
-    # XXX: This compares vl_py with vl_lstm.
-    # It's done this way because those two don't give the same outputs so
-    # the result isn't an apples-to-apples comparison right now.
-    control_creator = varlen_pytorch_lstm_creator
     name, experim_creator, context = get_nn_runners('vl_py')[0]
     with context():
         print('testing {}...'.format(name))
@@ -79,6 +75,10 @@ def test_vl_py(**test_args):
         creator_args = {key: test_args[key] for key in creator_keys}
 
         print("Setting up...")
+        # XXX: This compares vl_py with vl_lstm.
+        # It's done this way because those two don't give the same outputs so
+        # the result isn't an apples-to-apples comparison right now.
+        control_creator = varlen_pytorch_lstm_creator
         control = control_creator(**creator_args)
         experim = experim_creator(**creator_args)
 

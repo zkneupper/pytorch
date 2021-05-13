@@ -87,7 +87,7 @@ def run_benchmark(benchmark, ranks, opts):
     measurements = []
     if dist.get_rank() in set(ranks):
         if not opts:
-            opts = dict()
+            opts = {}
         measurements = benchmark_process_group(group, benchmark, **opts)
     dist.destroy_process_group(group)
     dist.barrier()
@@ -112,7 +112,7 @@ def sweep(benchmark):
     def print_header():
         local_print("\n")
         local_print("%22s" % "")
-        for p in [50, 75, 90, 95]:
+        for _ in [50, 75, 90, 95]:
             local_print("%14s%10s" % ("sec/iter", "ex/sec"))
         local_print("\n")
 

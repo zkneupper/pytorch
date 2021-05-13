@@ -90,9 +90,7 @@ def nvprof(cmd, outpath):
 
 
 def full_profile(rnns, **args):
-    profile_args = []
-    for k, v in args.items():
-        profile_args.append('--{}={}'.format(k, v))
+    profile_args = ['--{}={}'.format(k, v) for k, v in args.items()]
     profile_args.append('--rnns {}'.format(' '.join(rnns)))
     profile_args.append('--internal_run')
 

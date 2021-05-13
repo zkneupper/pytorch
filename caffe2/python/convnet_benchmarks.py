@@ -471,8 +471,7 @@ def _InceptionModule(
         ('XavierFill', {}), ('ConstantFill', {})
     )
     pool_proj = brew.relu(model, pool_proj, pool_proj)
-    output = brew.concat(model, [conv1, conv3, conv5, pool_proj], output_name)
-    return output
+    return brew.concat(model, [conv1, conv3, conv5, pool_proj], output_name)
 
 
 def Inception(order, cudnn_ws):

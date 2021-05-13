@@ -37,10 +37,10 @@ def initialize_master_xpu_model_params(model, weights_file, opts, reset_epoch):
     best_metric = float('-inf')
     if 'epoch' in blobs:
         log.info('epoch {} is found in model file'.format(blobs['epoch']))
-        if not reset_epoch:
-            start_epoch = blobs['epoch']
-        else:
+        if reset_epoch:
             log.info('Reset epoch')
+        else:
+            start_epoch = blobs['epoch']
     else:
         log.info('no epoch is found in model file')
     lr = opts['model_param']['base_learning_rate']
@@ -49,7 +49,11 @@ def initialize_master_xpu_model_params(model, weights_file, opts, reset_epoch):
     if 'best_metric' in blobs and not reset_epoch:
         best_metric = blobs['best_metric']
 
-    if model is not None:
+    if model is None:
+        log.info('Skip initializing model parameters from file: {}'.format(
+            weights_file
+        ))
+    else:
         log.info('initialize model parameters using weights file: {}'.format(
             weights_file
         ))
@@ -76,22 +80,18 @@ def initialize_master_xpu_model_params(model, weights_file, opts, reset_epoch):
                     )
                     if scoped_blob_name in ws_blobs:
                         ws_blob = workspace.FetchBlob(scoped_blob_name)
-                        if not ws_blob.shape == blobs[unscoped_blob_name].shape:
+                        if ws_blob.shape == blobs[unscoped_blob_name].shape:
+                            workspace.FeedBlob(
+                                scoped_blob_name,
+                                blobs[unscoped_blob_name].astype(
+                                    np.float32, copy=False))
+                        else:
                             log.info(
                                 ('Workspace blob {} with shape {} does '
                                     'not match weights file shape {}').format(
                                             unscoped_blob_name, ws_blob.shape,
                                             blobs[unscoped_blob_name].shape)
                             )
-                        else:
-                            workspace.FeedBlob(
-                                scoped_blob_name,
-                                blobs[unscoped_blob_name].astype(
-                                    np.float32, copy=False))
-    else:
-        log.info('Skip initializing model parameters from file: {}'.format(
-            weights_file
-        ))
     log.info('Complete initialize_master_xpu_model_params')
     return start_epoch, lr, best_metric
 
@@ -145,11 +145,12 @@ def save_model_params_blob(model, params_file, epoch, opts, best_metric):
     save_computed_params = [str(param) for param in
                             model.GetComputedParams('{}_{}'
                             .format(device, root_xpu_id))]
-    save_blobs = {}
-    save_blobs['epoch'] = epoch
-    save_blobs['best_metric'] = best_metric
-    save_blobs['lr'] = \
-        workspace.FetchBlob('{}_{}/lr'.format(device, root_xpu_id))
+    save_blobs = {
+        'epoch': epoch,
+        'best_metric': best_metric,
+        'lr': workspace.FetchBlob('{}_{}/lr'.format(device, root_xpu_id)),
+    }
+
     for param in save_params + save_computed_params:
         scoped_blob_name = str(param)
         unscoped_blob_name = unscope_name(scoped_blob_name)

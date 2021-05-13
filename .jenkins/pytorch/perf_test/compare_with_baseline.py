@@ -65,15 +65,16 @@ To reproduce this regression, run
 `cd .jenkins/pytorch/perf_test/ && bash {}.sh` on your local machine
 and compare the runtime before/after your code change.
 '''.format(test_name))
-else:
-    print("z-value < 3, no perf regression detected.")
-    if args.update:
-        print("We will use these numbers as new baseline.")
-        new_data_file_path = '../new_{}_runtime.json'.format(backend)
-        with open(new_data_file_path) as new_data_file:
-            new_data = json.load(new_data_file)
-        new_data[test_name] = {}
-        new_data[test_name]['mean'] = sample_mean
-        new_data[test_name]['sigma'] = max(sample_sigma, sample_mean * 0.1)
-        with open(new_data_file_path, 'w') as new_data_file:
-            json.dump(new_data, new_data_file, indent=4)
+print("z-value < 3, no perf regression detected.")
+if args.update:
+    print("We will use these numbers as new baseline.")
+    new_data_file_path = '../new_{}_runtime.json'.format(backend)
+    with open(new_data_file_path) as new_data_file:
+        new_data = json.load(new_data_file)
+    new_data[test_name] = {
+        'mean': sample_mean,
+        'sigma': max(sample_sigma, sample_mean * 0.1),
+    }
+
+    with open(new_data_file_path, 'w') as new_data_file:
+        json.dump(new_data, new_data_file, indent=4)

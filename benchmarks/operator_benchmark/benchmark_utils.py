@@ -15,7 +15,7 @@ _reserved_keywords = {"probs", "total_samples", "tags"}
 _supported_devices = {"cpu", "cuda"}
 
 def shape_to_string(shape):
-    return ', '.join([str(x) for x in shape])
+    return ', '.join(str(x) for x in shape)
 
 def str2bool(v):
     if isinstance(v, bool):
@@ -85,13 +85,10 @@ def generate_configs(**configs):
     for key, values in configs.items():
         if key == 'sample_func':
             continue
-        tmp_result = []
-        for value in values:
-            tmp_result.append({key : value})
+        tmp_result = [{key : value} for value in values]
         result.append(tmp_result)
 
-    results = configs['sample_func'](*result)
-    return results
+    return configs['sample_func'](*result)
 
 
 def cross_product_configs(**configs):
@@ -273,7 +270,7 @@ def random_sample_configs(**configs):
 
     configs_attrs_list = []
     randomsample = RandomSample(configs)
-    for i in range(configs["total_samples"]):
+    for _ in range(configs["total_samples"]):
         tmp_attr_list = randomsample.get_one_set_of_inputs()
         tmp_attr_list.append({"tags" : '_'.join(configs["tags"])})
         configs_attrs_list.append(tmp_attr_list)

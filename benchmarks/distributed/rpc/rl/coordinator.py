@@ -72,11 +72,8 @@ class CoordinatorBase:
             n_steps = episode_steps
             agent_start_time = time.time()
 
-            futs = []
-            for ob_rref in self.ob_rrefs:
-                futs.append(ob_rref.rpc_async().run_ob_episode(
-                    self.agent_rref, n_steps))
-
+            futs = [ob_rref.rpc_async().run_ob_episode(
+                    self.agent_rref, n_steps) for ob_rref in self.ob_rrefs]
             rets = torch.futures.wait_all(futs)
             agent_latency, agent_throughput = self.agent_rref.rpc_sync().finish_episode(rets)
 

@@ -95,9 +95,8 @@ class TorchBenchmarkBase(torch.nn.Module):
             test_name_str.append(
                 ('' if key in skip_key_list else key)
                 + str(value if type(value) != bool else int(value)))
-        name = (self.module_name() + '_' +
+        return (self.module_name() + '_' +
                 '_'.join(test_name_str)).replace(" ", "")
-        return name
 
 
 class PyTorchOperatorTestCase(object):

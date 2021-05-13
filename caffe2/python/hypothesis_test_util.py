@@ -350,7 +350,7 @@ def runOpBenchmark(
     op.device_option.CopyFrom(device_option)
     net = caffe2_pb2.NetDef()
     net.op.extend([op])
-    net.name = op.name if op.name else "test"
+    net.name = op.name or "test"
 
     with temp_workspace():
         _input_device_options = input_device_options or \
@@ -645,8 +645,7 @@ class HypothesisTestCase(test_util.TestCase):
                     raise e
             workspace.RunNetOnce(net)
             reference_outputs = reference(*inputs)
-            if not (isinstance(reference_outputs, tuple) or
-                    isinstance(reference_outputs, list)):
+            if not isinstance(reference_outputs, (tuple, list)):
                 raise RuntimeError(
                     "You are providing a wrong reference implementation. A "
                     "proper one should return a tuple/list of numpy arrays.")

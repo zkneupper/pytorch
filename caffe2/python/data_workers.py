@@ -80,7 +80,7 @@ LOG_INT_SECS = 60
 
 
 def get_worker_ids(num_workers):
-    return list(range(0, num_workers))
+    return list(range(num_workers))
 
 
 def init_data_input_workers(
@@ -216,13 +216,10 @@ class BatchFeeder(State):
             assert isinstance(d, np.ndarray), \
                 "Fetcher function must return a numpy array"
         if not self._dont_rebatch:
-            j = 1
-            for d in chunk[1:]:
+            for j, d in enumerate(chunk[1:], start=1):
                 assert d.shape[self._batch_columns[j]] == \
                     chunk[0].shape[self._batch_columns[0]], \
                     "Each returned input must have equal number of samples"
-                j += 1
-
         if len(chunk) == 0:
             log.warning("Worker provided zero length input")
             return False

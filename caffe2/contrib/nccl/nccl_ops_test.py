@@ -137,8 +137,7 @@ class NCCLOpsTest(hu.HypothesisTestCase):
             assert len(args) == n
             reduced = sum(args)
             assert len(reduced.shape) > 1
-            ref = [reduced[i, :] for i in range(n)]
-            return ref
+            return [reduced[i, :] for i in range(n)]
 
         self.assertReferenceChecks(
             hu.gpu_do, op, [xs[i] for i, _ in enumerate(inputs)],

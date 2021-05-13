@@ -39,8 +39,7 @@ class BroadcastMulBench(benchmark.Benchmark):
         self.inputs = [self.d1, self.d2]
 
     def forward(self, d1, d2):
-        y = d1 + d2
-        return y
+        return d1 + d2
 
     def reference(self):
         return self.numpy(self.d1) + self.numpy(self.d2)
@@ -111,8 +110,7 @@ class BroadcastThreeArgs(benchmark.Benchmark):
         self.inputs = [self.d1, self.d2, self.d3]
 
     def forward(self, d1, d2, d3):
-        y = d1 + d2 + d3
-        return y
+        return d1 + d2 + d3
 
     def reference(self):
         return self.numpy(self.d1) + self.numpy(self.d2) + self.numpy(self.d3)
@@ -215,21 +213,8 @@ class BroadcastBench(benchmark.Benchmark):
 
     def memory_workload(self):
         input_count = len(self.inputs)
-        if self.mode == "fwd":
-            if self.split_input:
-                sol_count = 1
-                algorithmic_count = 1
-            else:
-                sol_count = 1
-                algorithmic_count = 1
-        else:
-            if self.split_input:
-                sol_count = 1
-                algorithmic_count = input_count
-            else:
-                sol_count = 1
-                algorithmic_count = input_count
-
+        algorithmic_count = 1 if self.mode == "fwd" else input_count
+        sol_count = 1
         buffer_size = self.M * self.N * self.K * 4
         return {
             "sol": buffer_size * sol_count,

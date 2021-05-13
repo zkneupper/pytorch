@@ -90,7 +90,7 @@ def transFCRelu(cur, id2node, name2id, ops, model):
     while True:
         # breakup with the parent
         cur.deleteInput(pre)
-        if not (cur.optype == "FC_Prune" or cur.optype == "Relu"):
+        if not cur.optype in ["FC_Prune", "Relu"]:
             print("Reaching the end of the chain")
             break
         if len(cur.ops) > 1:
@@ -122,7 +122,7 @@ def transFCRelu(cur, id2node, name2id, ops, model):
         pre = cur
         flag = False
         for _, temp in cur.ops.iteritems():
-            if temp.optype == "Relu" or temp.optype == "FC_Prune":
+            if temp.optype in ["Relu", "FC_Prune"]:
                 flag = True
                 cur = temp
         if not flag:
@@ -157,11 +157,9 @@ def net2list(net_root):
     """
     Use topological order(BFS) to print the op of a net in a list
     """
-    bfs_queue = []
     op_list = []
     cur = net_root
-    for _, n in cur.ops.iteritems():
-        bfs_queue.append(n)
+    bfs_queue = [n for _, n in cur.ops.iteritems()]
     while bfs_queue:
         node = bfs_queue[0]
         bfs_queue = bfs_queue[1:]

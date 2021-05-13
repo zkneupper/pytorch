@@ -312,10 +312,7 @@ class TestCreateOperator(test_util.TestCase):
 
         # can't guarantee ordering of kwargs, so generate a set of args
         # to test with
-        arg_map = {}
-        for arg in op.arg:
-            arg_map[arg.name] = arg
-
+        arg_map = {arg.name: arg for arg in op.arg}
         # Check all elements exist that should
         self.assertEqual("arg1" in arg_map, True)
         self.assertEqual("arg2" in arg_map, True)
@@ -470,14 +467,17 @@ class TestExtractPredictorNet(test_util.TestCase):
         # Check export blobs
         self.assertTrue("image" not in export_blobs)
         self.assertTrue("xx/data" not in export_blobs)
-        self.assertEqual(set([str(p) for p in model.params]), export_blobs)
+        self.assertEqual({str(p) for p in model.params}, export_blobs)
 
         # Check external inputs/outputs
         self.assertTrue("image" in predict_net.Proto().external_input)
         self.assertEquals(set(["pred"]), set(predict_net.Proto().external_output))
         self.assertEqual(
-            set(predict_net.Proto().external_input) -
-            set([str(p) for p in model.params]), set(["image"])
+            (
+                set(predict_net.Proto().external_input)
+                - {str(p) for p in model.params}
+            ),
+            set(["image"]),
         )
 
 
@@ -576,7 +576,7 @@ class TestCreatePlan(test_util.TestCase):
         self.assertEqual(len(test_plan.Proto().execution_step), 1)
         self.assertEqual(plan.Steps()[0].Name(), test_plan.Steps()[0].Name())
         self.assertEqual(len(plan.Nets()), len(test_plan.Nets()))
-        for idx in range(0, len(plan.Nets())):
+        for idx in range(len(plan.Nets())):
             # When we create Net for test_plan, we will end up with new Net
             # name with postfix.
             net_1 = plan.Nets()[idx]
@@ -1106,15 +1106,13 @@ external_input: "data"
         # Create CPU and GPU devices on 2 nodes.
         cpu_device = []
         gpu_device = []
-        for i in range(0, 2):
+        for i in range(2):
             cpu_device.append(caffe2_pb2.DeviceOption())
             cpu_device[i].node_name = 'node:' + str(i)
             gpu_device.append(caffe2_pb2.DeviceOption())
             gpu_device[i].device_type = workspace.GpuDeviceType
             gpu_device[i].device_id = 0
             gpu_device[i].node_name = 'node:' + str(i)
-        send_node = 'node:0'
-        recv_node = 'node:1'
         placeholder_send = 'Placeholder:Dummy:Send'
         placeholder_recv = 'Placeholder:Dummy:Recv'
 
@@ -1124,6 +1122,7 @@ external_input: "data"
             weight = init_net.XavierFill([], 'fc_w', shape=[10, 100])
             bias = init_net.ConstantFill([], 'fc_b', shape=[10, ])
         with core.DeviceScope(cpu_device[0]):
+            recv_node = 'node:1'
             op = core.CreateOperator(
                 placeholder_send, [weight, bias], [],
                 dst_node=recv_node)
@@ -1132,6 +1131,7 @@ external_input: "data"
         # train_net
         train_net = core.Net("train_net")
         with core.DeviceScope(cpu_device[1]):
+            send_node = 'node:0'
             # XXX. replace hardcoded op name. Move test to net_transforms.
             op = core.CreateOperator(
                 placeholder_recv, [], [weight, bias],

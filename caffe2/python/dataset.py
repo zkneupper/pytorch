@@ -204,8 +204,10 @@ class Dataset(object):
                     compatible with the one described in schema.py.
             name: optional name to prepend to blobs that will store the data.
         """
-        assert isinstance(fields, list) or isinstance(fields, Struct), (
-            'fields must be either a Struct or a list of raw field names.')
+        assert isinstance(
+            fields, (list, Struct)
+        ), 'fields must be either a Struct or a list of raw field names.'
+
         if isinstance(fields, list):
             fields = from_column_list(fields)
         self.schema = fields
